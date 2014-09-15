@@ -15,6 +15,11 @@ results = parse_surface(mecab, "今日の天気は晴れです")
 @test isa(results[1], String)
 @test results[1] == "今日"
 
+nbest_results = parse_nbest(mecab, 3, "こんにちは")
+@test length(nbest_results) == 3
+@test length(nbest_results[1]) == 1
+@test nbest_results[1][1].surface == "こんにちは"
+
 result = sparse_tostr(mecab, "こんにちは")
 @test result == "こんにちは\t感動詞,*,*,*,*,*,こんにちは,コンニチハ,コンニチワ\nEOS\n"
 

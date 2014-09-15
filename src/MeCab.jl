@@ -1,6 +1,7 @@
 module MeCab
 
-export Mecab, MecabResult, sparse_tostr, nbest_sparse_tostr, nbest_init, nbest_next_tostr, parse_tonode, parse, parse_surface
+export Mecab, MecabResult, sparse_tostr, nbest_sparse_tostr,
+       nbest_init, nbest_next_tostr, parse_tonode, parse, parse_surface, parse_nbest
 
 type Mecab
   ptr::Ptr{Void}
@@ -63,15 +64,8 @@ end
 
 function parse(mecab::Mecab, input::String)
   results = split(sparse_tostr(mecab, input), "\n")
-  pop!(results)
-  pop!(results)
-  nodes = MecabResult[]
-  for result in results
-    surface, feature = split(result)
-    push!(nodes, MecabResult(surface, feature))
-  end
 
-  nodes
+  create_mecab_results(results)
 end
 
 function parse_surface(mecab::Mecab, input::String)
@@ -79,4 +73,21 @@ function parse_surface(mecab::Mecab, input::String)
   map((x) -> x.surface, results)
 end
 
+function parse_nbest(mecab::Mecab, n::Int64, input::String)
+  results = split(nbest_sparse_tostr(mecab, n, input), "EOS\n")
+
+  filter(x -> !isempty(x), [create_mecab_results(split(result,"\n")) for result in results])
+end
+
+function create_mecab_results(results::Array{SubString{UTF8String}, 1})
+  filter(x -> x != nothing, map(mecab_result, results))
+end
+
+function mecab_result(input::String)
+  if isempty(input) || input == "EOS"
+    return
+  end
+  surface, feature = split(input)
+  MecabResult(surface, feature)
+end
 end
