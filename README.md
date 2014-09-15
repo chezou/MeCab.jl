@@ -41,6 +41,8 @@ for nbest_result in nbest_results
   println()
 end
 
+```
+
 ## Requirement
 - mecab
 - dictionary for mecab (such as mecab-ipadic, mecab-naist-jdic, and so on)
@@ -49,5 +51,3 @@ end
 MeCab.jl is created by Michiaki Ariga
 
 [MeCab](http://mecab.googlecode.com/svn/trunk/mecab/doc/index.html) by Taku Kudo
-
-```
