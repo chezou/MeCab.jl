@@ -1,5 +1,15 @@
 module MeCab
 
+# Load dependencies
+deps = joinpath(Pkg.dir("MeCab"), "deps", "deps.jl")
+if isfile(deps)
+    include(deps)
+else
+    error("MeCab not properly installed. Please run Pkg.build(\"MeCab\")")
+end
+
+@assert isdefined(:libmecab)
+
 export Mecab, MecabResult, sparse_tostr, nbest_sparse_tostr,
        nbest_init, nbest_next_tostr, parse_tonode, parse, parse_surface, parse_nbest
 
@@ -13,7 +23,7 @@ type Mecab
     end
 
     ptr = ccall(
-      (:mecab_new, "libmecab"),
+      (:mecab_new, libmecab),
       Ptr{Void},
       (Cint, Ptr{Ptr{Uint8}}),
       length(argv), argv
@@ -24,7 +34,7 @@ type Mecab
     end
     smart_p = new(ptr)
 
-    finalizer(smart_p, obj -> ccall((:mecab_destroy, "libmecab"),  Void, (Ptr{Void},), obj.ptr))
+    finalizer(smart_p, obj -> ccall((:mecab_destroy, libmecab),  Void, (Ptr{Void},), obj.ptr))
 
     smart_p
   end
@@ -37,7 +47,7 @@ end
 
 function sparse_tostr(mecab::Mecab, input::String)
   result = ccall(
-      (:mecab_sparse_tostr, "libmecab"), Ptr{Uint8},
+      (:mecab_sparse_tostr, libmecab), Ptr{Uint8},
       (Ptr{Uint8}, Ptr{Uint8},),
       mecab.ptr, bytestring(input)
     )
@@ -46,7 +56,7 @@ end
 
 function nbest_sparse_tostr(mecab::Mecab, n::Int64, input::String)
   result = ccall(
-      (:mecab_nbest_sparse_tostr, "libmecab"), Ptr{Uint8},
+      (:mecab_nbest_sparse_tostr, libmecab), Ptr{Uint8},
       (Ptr{Uint8}, Int32, Ptr{Uint8},),
       mecab.ptr, n, bytestring(input)
     )
@@ -54,11 +64,11 @@ function nbest_sparse_tostr(mecab::Mecab, n::Int64, input::String)
 end
 
 function nbest_init(mecab::Mecab, input::String)
-  ccall((:mecab_nbest_init, "libmecab"), Void, (Ptr{Void}, Ptr{Uint8}), mecab.ptr, bytestring(input))
+  ccall((:mecab_nbest_init, libmecab), Void, (Ptr{Void}, Ptr{Uint8}), mecab.ptr, bytestring(input))
 end
 
 function nbest_next_tostr(mecab::Mecab)
-  result = ccall((:mecab_nbest_next_tostr,"libmecab"), Ptr{Uint8}, (Ptr{Void},), mecab.ptr)
+  result = ccall((:mecab_nbest_next_tostr,libmecab), Ptr{Uint8}, (Ptr{Void},), mecab.ptr)
   bytestring(result)
 end
 
