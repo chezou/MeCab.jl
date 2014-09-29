@@ -12,7 +12,6 @@ before_install:
   - sudo add-apt-repository ppa:staticfloat/${JULIAVERSION} -y
   - sudo apt-get update -qq -y
   - sudo apt-get install libpcre3-dev julia -y
-  - curl https://gist.githubusercontent.com/dtan4/351d031bec0c3d45cd8f/raw/mecab_install.sh | bash
   - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
 script:
-  - julia -e 'Pkg.init(); Pkg.clone(pwd()); Pkg.test("MeCab")'
+  - julia -e 'Pkg.init(); Pkg.clone(pwd()); Pkg.build("MeCab"); Pkg.test("MeCab")'
