@@ -56,5 +56,5 @@ end
 
 ipadic_dir = joinpath(BinDeps.depsdir(mecab), "usr", "lib", "mecab", "dic", "ipadic")
 if isempty(find_library(["libmecab"])) && !isdir(ipadic_dir)
-    install_ipadic()
+    @unix_only install_ipadic()
 end
