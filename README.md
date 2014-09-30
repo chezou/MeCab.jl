@@ -10,8 +10,10 @@ Julia bindings for Japanese morphological analyzer [MeCab](http://mecab.googleco
 using MeCab
 
 # Create MeCab tagger
-# You can give MeCab option like "-o wakati"
 mecab = Mecab()
+
+# You can give MeCab option like "-o wakati"
+# mecab = Mecab("-o wakati")
 
 # Parse text
 # It returns Array of MecabResult type
@@ -46,6 +48,8 @@ end
 ## Requirement
 - mecab
 - dictionary for mecab (such as mecab-ipadic, mecab-naist-jdic, and so on)
+
+If you don't install mecab and libmecab yet, MeCab.jl will install mecab, libmecab and mecab-ipadic under unix-like environment.
 
 ## Credits
 MeCab.jl is created by Michiaki Ariga
