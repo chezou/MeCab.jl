@@ -51,7 +51,7 @@ function sparse_tostr(mecab::Mecab, input::String)
       (Ptr{Uint8}, Ptr{Uint8},),
       mecab.ptr, bytestring(input)
     )
-  bytestring(result)
+  utf8(chomp(bytestring(result)))
 end
 
 function nbest_sparse_tostr(mecab::Mecab, n::Int64, input::String)
@@ -60,7 +60,7 @@ function nbest_sparse_tostr(mecab::Mecab, n::Int64, input::String)
       (Ptr{Uint8}, Int32, Ptr{Uint8},),
       mecab.ptr, n, bytestring(input)
     )
-  bytestring(result)
+  utf8(chomp(bytestring(result)))
 end
 
 function nbest_init(mecab::Mecab, input::String)
@@ -69,7 +69,7 @@ end
 
 function nbest_next_tostr(mecab::Mecab)
   result = ccall((:mecab_nbest_next_tostr,libmecab), Ptr{Uint8}, (Ptr{Void},), mecab.ptr)
-  bytestring(result)
+  utf8(chomp(bytestring(result)))
 end
 
 function parse(mecab::Mecab, input::String)
