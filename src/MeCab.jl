@@ -42,41 +42,46 @@ type MecabResult
   feature::UTF8String
 end
 
-function sparse_tostr(mecab::Mecab, input::UTF8String)
+function sparse_tostr(mecab::Mecab, input::String)
   result = ccall(
       (:mecab_sparse_tostr, libmecab), Ptr{Uint8},
       (Ptr{Uint8}, Ptr{Uint8},),
       mecab.ptr, bytestring(input)
     )
-  chomp(bytestring(result))
+  ret::UTF8String
+  ret = chomp(bytestring(result))
+  ret
 end
 
-function nbest_sparse_tostr(mecab::Mecab, n::Int64, input::UTF8String)
+function nbest_sparse_tostr(mecab::Mecab, n::Int64, input::String)
   result = ccall(
       (:mecab_nbest_sparse_tostr, libmecab), Ptr{Uint8},
       (Ptr{Uint8}, Int32, Ptr{Uint8},),
       mecab.ptr, n, bytestring(input)
     )
-  chomp(bytestring(result))
+  ret::UTF8String
+  ret = chomp(bytestring(result))
+  ret
 end
 
-function nbest_init(mecab::Mecab, input::UTF8String)
+function nbest_init(mecab::Mecab, input::String)
   ccall((:mecab_nbest_init, libmecab), Void, (Ptr{Void}, Ptr{Uint8}), mecab.ptr, bytestring(input))
 end
 
 function nbest_next_tostr(mecab::Mecab)
   result = ccall((:mecab_nbest_next_tostr,libmecab), Ptr{Uint8}, (Ptr{Void},), mecab.ptr)
-  chomp(bytestring(result))
+  ret::UTF8String
+  ret = chomp(bytestring(result))
+  ret
 end
 
-function parse(mecab::Mecab, input::UTF8String)
+function parse(mecab::Mecab, input::String)
+  results::Array{UTF8String}
   results = split(sparse_tostr(mecab, input), "\n")
 
-  create_mecab_results(convert(Array{UTF8String}, results))
-end
-
-function parse(mecab::Mecab, input::ASCIIString)
-  parse(mecab, utf8(input))
+  ret::Array{MecabResult}
+  ret = create_mecab_results(results)
+  ret
 end
 
 function parse_surface(mecab::Mecab, input::UTF8String)
