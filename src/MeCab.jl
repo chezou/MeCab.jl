@@ -38,8 +38,8 @@ type Mecab
 end
 
 type MecabResult
-  surface::String
-  feature::String
+  surface::UTF8String
+  feature::UTF8String
 end
 
 function sparse_tostr(mecab::Mecab, input::String)
