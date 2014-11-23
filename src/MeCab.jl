@@ -17,10 +17,7 @@ type Mecab
   ptr::Ptr{Void}
 
   function Mecab(option::String = "")
-    argv = split(option)
-    if(length(argv) == 0)
-      argv = [""]
-    end
+    argv = convert(Array{ASCIIString}, vcat("mecab", split(option)))
 
     ptr = ccall(
       (:mecab_new, libmecab),
