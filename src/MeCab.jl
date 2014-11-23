@@ -76,8 +76,13 @@ function parse(mecab::Mecab, input::String)
 end
 
 function parse_surface(mecab::Mecab, input::String)
-  results = parse(mecab, input)
-  map((x) -> x.surface, results)
+  results = [ split(line, "\t")[1] for line = split(sparse_tostr(mecab, input), "\n") ]
+  # If you don't need EOS, you can remove following
+  if isempty(results)
+    return []
+  end
+  pop!(results)
+  results
 end
 
 function parse_nbest(mecab::Mecab, n::Int64, input::String)
