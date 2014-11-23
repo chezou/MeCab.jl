@@ -48,7 +48,7 @@ function sparse_tostr(mecab::Mecab, input::String)
       (Ptr{Uint8}, Ptr{Uint8},),
       mecab.ptr, bytestring(input)
     )
-  utf8(chomp(bytestring(result)))
+  chomp(bytestring(result))
 end
 
 function nbest_sparse_tostr(mecab::Mecab, n::Int64, input::String)
@@ -57,7 +57,7 @@ function nbest_sparse_tostr(mecab::Mecab, n::Int64, input::String)
       (Ptr{Uint8}, Int32, Ptr{Uint8},),
       mecab.ptr, n, bytestring(input)
     )
-  utf8(chomp(bytestring(result)))
+  chomp(bytestring(result))
 end
 
 function nbest_init(mecab::Mecab, input::String)
@@ -66,13 +66,13 @@ end
 
 function nbest_next_tostr(mecab::Mecab)
   result = ccall((:mecab_nbest_next_tostr,libmecab), Ptr{Uint8}, (Ptr{Void},), mecab.ptr)
-  utf8(chomp(bytestring(result)))
+  chomp(bytestring(result))
 end
 
 function parse(mecab::Mecab, input::String)
   results = split(sparse_tostr(mecab, input), "\n")
 
-  create_mecab_results(results)
+  create_mecab_results(convert(Array{UTF8String}, results))
 end
 
 function parse_surface(mecab::Mecab, input::String)
@@ -83,10 +83,10 @@ end
 function parse_nbest(mecab::Mecab, n::Int64, input::String)
   results = split(nbest_sparse_tostr(mecab, n, input), "EOS\n")
 
-  filter(x -> !isempty(x), [create_mecab_results(split(result,"\n")) for result in results])
+  filter(x -> !isempty(x), [create_mecab_results(convert(Array{UTF8String}, split(result,"\n"))) for result in results])
 end
 
-function create_mecab_results(results::Array{SubString{UTF8String}, 1})
+function create_mecab_results(results::Array{UTF8String, 1})
   filter(x -> x != nothing, map(mecab_result, results))
 end
 
