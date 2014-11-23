@@ -27,6 +27,9 @@ nbest_results = parse_nbest(mecab, 3, "こんにちは")
 @test length(nbest_results[1]) == 1
 @test nbest_results[1][1].surface == "こんにちは"
 
+results = parse_nbest(mecab, 3, "")
+@test length(results) == 0
+
 result = sparse_tostr(mecab, "こんにちは")
 @test result == "こんにちは\t感動詞,*,*,*,*,*,こんにちは,コンニチハ,コンニチワ\nEOS"
 
