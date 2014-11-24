@@ -16,8 +16,8 @@ export Mecab, MecabResult, sparse_tostr, nbest_sparse_tostr,
 type Mecab
   ptr::Ptr{Void}
 
-  function Mecab(option::String = "")
-    argv = convert(Array{ASCIIString}, vcat("mecab", split(option)))
+  function Mecab(option::ASCIIString = "")
+    argv = vcat("mecab", split(option))
 
     ptr = ccall(
       (:mecab_new, libmecab),
@@ -75,13 +75,20 @@ function nbest_next_tostr(mecab::Mecab)
   ret
 end
 
-function parse(mecab::Mecab, input::String)
+function parse(mecab::Mecab, input::UTF8String)
   results::Array{UTF8String}
   results = split(sparse_tostr(mecab, input), "\n")
 
   ret::Array{MecabResult}
   ret = create_mecab_results(results)
   ret
+end
+
+function parse(mecab::Mecab, input::ASCIIString)
+  if isempty(input)
+    return []
+  end
+  parse(mecab, utf8(input))
 end
 
 function parse_surface(mecab::Mecab, input::UTF8String)

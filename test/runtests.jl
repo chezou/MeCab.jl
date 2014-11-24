@@ -13,7 +13,6 @@ results = parse(mecab, "今日の天気は晴れです")
 results = parse(mecab, "")
 @test length(results) == 0
 
-
 results = parse_surface(mecab, "今日の天気は晴れです")
 @test length(results) == 6
 @test isa(results[1], String)
