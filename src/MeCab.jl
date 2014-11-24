@@ -10,7 +10,7 @@ end
 
 @assert isdefined(:libmecab)
 
-export Mecab, MecabResult, sparse_tostr, nbest_sparse_tostr,
+export Mecab, MecabNode, sparse_tostr, nbest_sparse_tostr, mecab_sparse_tonode,
        nbest_init, nbest_next_tostr, parse_tonode, parse, parse_surface, parse_nbest
 
 type Mecab
@@ -37,15 +37,69 @@ type Mecab
   end
 end
 
-type MecabResult
+type MecabRawNode
+  prev::Ptr{MecabRawNode}
+  next::Ptr{MecabRawNode}
+  enext::Ptr{MecabRawNode}
+  bnext::Ptr{MecabRawNode}
+  rpath::Ptr{Void}
+  lpath::Ptr{Void}
+  surface::Ptr{UInt8}
+  feature::Ptr{UInt8}
+  id::Cint
+  length::Cushort
+  rlength::Cushort
+  rcAttr::Cushort
+  lcAttr::Cushort
+  posid::Cushort
+  char_type::Cuchar
+  stat::Cuchar
+  isbest::Cuchar
+  alpha::Cfloat
+  beta::Cfloat
+  prob::Cfloat
+  wcost::Cshort
+  cost::Clong
+end
+
+type MecabNode
   surface::UTF8String
   feature::UTF8String
+end
+
+function create_node(raw::MecabRawNode)
+  MecabNode(
+    create_surface(raw),
+    bytestring(raw.feature),
+  )
+end
+
+function create_surface(raw::MecabRawNode)
+  _surface = bytestring(raw.surface)
+  surface::UTF8String
+  surface = try
+      _surface[1:raw.length]
+    catch
+      _surface[1:1]
+    end
+end
+
+function create_nodes(raw::Ptr{MecabRawNode})
+  ret = Array(MecabNode, 0)
+  while raw != C_NULL
+    _raw = unsafe_load(raw)
+    if _raw.length != 0
+      push!(ret, create_node(_raw))
+    end
+    raw = _raw.next
+  end
+  ret
 end
 
 function sparse_tostr(mecab::Mecab, input::String)
   result = ccall(
       (:mecab_sparse_tostr, libmecab), Ptr{Uint8},
-      (Ptr{Uint8}, Ptr{Uint8},),
+      (Ptr{UInt8}, Ptr{UInt8},),
       mecab.ptr, bytestring(input)
     )
   ret::UTF8String
@@ -55,13 +109,22 @@ end
 
 function nbest_sparse_tostr(mecab::Mecab, n::Int64, input::String)
   result = ccall(
-      (:mecab_nbest_sparse_tostr, libmecab), Ptr{Uint8},
-      (Ptr{Uint8}, Int32, Ptr{Uint8},),
+      (:mecab_nbest_sparse_tostr, libmecab), Ptr{UInt8},
+      (Ptr{UInt8}, Int32, Ptr{UInt8},),
       mecab.ptr, n, bytestring(input)
     )
   ret::UTF8String
   ret = chomp(bytestring(result))
   ret
+end
+
+function mecab_sparse_tonode(mecab::Mecab, input::String)
+  node = ccall(
+      (:mecab_sparse_tonode, libmecab), Ptr{MecabRawNode},
+      (Ptr{UInt8}, Ptr{UInt8},),
+      mecab.ptr, bytestring(input)
+    )
+  node
 end
 
 function nbest_init(mecab::Mecab, input::String)
@@ -76,12 +139,9 @@ function nbest_next_tostr(mecab::Mecab)
 end
 
 function parse(mecab::Mecab, input::UTF8String)
-  results::Array{UTF8String}
-  results = split(sparse_tostr(mecab, input), "\n")
-
-  ret::Array{MecabResult}
-  ret = create_mecab_results(results)
-  ret
+  node = mecab_sparse_tonode(mecab, input)
+  ret::Array{MecabNode}
+  ret = create_nodes(node)
 end
 
 function parse(mecab::Mecab, input::ASCIIString)
@@ -124,6 +184,6 @@ function mecab_result(input::UTF8String)
     return
   end
   surface, feature = split(input)
-  MecabResult(surface, feature)
+  MecabNode(surface, feature)
 end
 end
