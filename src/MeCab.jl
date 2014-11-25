@@ -44,8 +44,8 @@ type MecabRawNode
   bnext::Ptr{MecabRawNode}
   rpath::Ptr{Void}
   lpath::Ptr{Void}
-  surface::Ptr{UInt8}
-  feature::Ptr{UInt8}
+  surface::Ptr{Uint8}
+  feature::Ptr{Uint8}
   id::Cint
   length::Cushort
   rlength::Cushort
@@ -111,7 +111,7 @@ end
 function sparse_tostr(mecab::Mecab, input::String)
   result = ccall(
       (:mecab_sparse_tostr, libmecab), Ptr{Uint8},
-      (Ptr{UInt8}, Ptr{UInt8},),
+      (Ptr{Uint8}, Ptr{Uint8},),
       mecab.ptr, bytestring(input)
     )
   ret::UTF8String
@@ -121,8 +121,8 @@ end
 
 function nbest_sparse_tostr(mecab::Mecab, n::Int64, input::String)
   result = ccall(
-      (:mecab_nbest_sparse_tostr, libmecab), Ptr{UInt8},
-      (Ptr{UInt8}, Int32, Ptr{UInt8},),
+      (:mecab_nbest_sparse_tostr, libmecab), Ptr{Uint8},
+      (Ptr{Uint8}, Int32, Ptr{Uint8},),
       mecab.ptr, n, bytestring(input)
     )
   ret::UTF8String
@@ -133,7 +133,7 @@ end
 function mecab_sparse_tonode(mecab::Mecab, input::String)
   node = ccall(
       (:mecab_sparse_tonode, libmecab), Ptr{MecabRawNode},
-      (Ptr{UInt8}, Ptr{UInt8},),
+      (Ptr{Uint8}, Ptr{Uint8},),
       mecab.ptr, bytestring(input)
     )
   node
