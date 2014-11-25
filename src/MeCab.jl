@@ -11,7 +11,7 @@ end
 @assert isdefined(:libmecab)
 
 export Mecab, MecabNode, sparse_tostr, nbest_sparse_tostr, mecab_sparse_tonode,
-       nbest_init, nbest_next_tostr, parse_tonode, parse, parse_surface, parse_nbest
+       nbest_init, nbest_next_tostr, parse_tonode, parse, parse_surface, parse_surface2, parse_nbest
 
 type Mecab
   ptr::Ptr{Void}
@@ -96,6 +96,18 @@ function create_nodes(raw::Ptr{MecabRawNode})
   ret
 end
 
+function create_surfaces(raw::Ptr{MecabRawNode})
+  ret = Array(UTF8String, 0)
+  while raw != C_NULL
+    _raw = unsafe_load(raw)
+    if _raw.length != 0
+      push!(ret, create_surface(_raw))
+    end
+    raw = _raw.next
+  end
+  ret
+end
+
 function sparse_tostr(mecab::Mecab, input::String)
   result = ccall(
       (:mecab_sparse_tostr, libmecab), Ptr{Uint8},
@@ -163,6 +175,12 @@ end
 
 function parse_surface(mecab::Mecab, input::ASCIIString)
   parse_surface(mecab, utf8(input))
+end
+
+function parse_surface2(mecab::Mecab, input::UTF8String)
+  node = mecab_sparse_tonode(mecab, input)
+  ret::Array{UTF8String}
+  ret = create_surfaces(node)
 end
 
 function parse_nbest(mecab::Mecab, n::Int64, input::UTF8String)
