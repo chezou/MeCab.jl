@@ -16,7 +16,7 @@ mecab = Mecab()
 # mecab = Mecab("-o wakati")
 
 # Parse text
-# It returns Array of MecabResult type
+# It returns Array of MecabNode type
 results = parse(mecab, "すももももももももものうち")
 
 # Access each result.
@@ -29,7 +29,7 @@ end
 results = parse_surface(mecab, "すももももももももものうち")
 
 # Access each result
-# It returns Array of Array of MecabResult
+# It returns Array of Array of MecabNode
 for result in results
   println(result)
 end
