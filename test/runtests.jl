@@ -9,6 +9,7 @@ results = parse(mecab, "今日の天気は晴れです")
 @test isa(results[1], MecabNode)
 @test results[1].surface == "今日"
 @test results[1].feature == "名詞,副詞可能,*,*,*,*,今日,キョウ,キョー"
+@test results[6].surface == "です"
 
 results = parse(mecab, "")
 @test length(results) == 0
@@ -17,6 +18,7 @@ results = parse_surface(mecab, "今日の天気は晴れです")
 @test length(results) == 6
 @test isa(results[1], String)
 @test results[1] == "今日"
+@test results[6] == "です"
 
 results = parse_surface(mecab, "")
 @test length(results) == 0

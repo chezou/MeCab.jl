@@ -80,7 +80,7 @@ function create_surface(raw::MecabRawNode)
   surface = try
       _surface[1:raw.length]
     catch
-      _surface[1:1]
+      _surface
     end
 end
 
