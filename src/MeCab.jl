@@ -10,8 +10,9 @@ end
 
 @assert isdefined(:libmecab)
 
+import Base: parse
 export Mecab, MecabNode, sparse_tostr, nbest_sparse_tostr, mecab_sparse_tonode,
-       nbest_init, nbest_next_tostr, parse_tonode, parse, parse_surface, parse_surface2, parse_nbest
+       nbest_init, nbest_next_tostr, parse_tonode, parse_surface, parse_surface2, parse_nbest
 
 type Mecab
   ptr::Ptr{Void}
