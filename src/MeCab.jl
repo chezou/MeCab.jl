@@ -24,7 +24,7 @@ type Mecab
     ptr = ccall(
       (:mecab_new, libmecab),
       Ptr{Void},
-      (Cint, Ptr{Ptr{@compat UInt8}}),
+      (Cint, Ptr{Ptr{UInt8}}),
       length(argv), argv
     )
 
@@ -46,8 +46,8 @@ type MecabRawNode
   bnext::Ptr{MecabRawNode}
   rpath::Ptr{Void}
   lpath::Ptr{Void}
-  surface::Ptr{@compat UInt8}
-  feature::Ptr{@compat UInt8}
+  surface::Ptr{UInt8}
+  feature::Ptr{UInt8}
   id::Cint
   length::Cushort
   rlength::Cushort
@@ -112,8 +112,8 @@ end
 
 function sparse_tostr(mecab::Mecab, input::AbstractString)
   result = ccall(
-      (:mecab_sparse_tostr, libmecab), Ptr{@compat UInt8},
-      (Ptr{@compat UInt8}, Ptr{@compat UInt8},),
+      (:mecab_sparse_tostr, libmecab), Ptr{UInt8},
+      (Ptr{UInt8}, Ptr{UInt8},),
       mecab.ptr, bytestring(input)
     )
   ret::UTF8String
@@ -123,8 +123,8 @@ end
 
 function nbest_sparse_tostr(mecab::Mecab, n::Int64, input::AbstractString)
   result = ccall(
-      (:mecab_nbest_sparse_tostr, libmecab), Ptr{@compat UInt8},
-      (Ptr{@compat UInt8}, Int32, Ptr{@compat UInt8},),
+      (:mecab_nbest_sparse_tostr, libmecab), Ptr{UInt8},
+      (Ptr{UInt8}, Int32, Ptr{UInt8},),
       mecab.ptr, n, bytestring(input)
     )
   ret::UTF8String
@@ -135,18 +135,18 @@ end
 function mecab_sparse_tonode(mecab::Mecab, input::AbstractString)
   node = ccall(
       (:mecab_sparse_tonode, libmecab), Ptr{MecabRawNode},
-      (Ptr{@compat UInt8}, Ptr{@compat UInt8},),
+      (Ptr{UInt8}, Ptr{UInt8},),
       mecab.ptr, bytestring(input)
     )
   node
 end
 
 function nbest_init(mecab::Mecab, input::AbstractString)
-  ccall((:mecab_nbest_init, libmecab), Void, (Ptr{Void}, Ptr{@compat UInt8}), mecab.ptr, bytestring(input))
+  ccall((:mecab_nbest_init, libmecab), Void, (Ptr{Void}, Ptr{UInt8}), mecab.ptr, bytestring(input))
 end
 
 function nbest_next_tostr(mecab::Mecab)
-  result = ccall((:mecab_nbest_next_tostr,libmecab), Ptr{@compat UInt8}, (Ptr{Void},), mecab.ptr)
+  result = ccall((:mecab_nbest_next_tostr,libmecab), Ptr{UInt8}, (Ptr{Void},), mecab.ptr)
   ret::UTF8String
   ret = chomp(bytestring(result))
   ret
