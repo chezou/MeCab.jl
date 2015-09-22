@@ -10,7 +10,7 @@ notifications:
 sudo: false
 script:
   - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
-  - julia -e 'Pkg.clone(pwd())'
+  - julia -e 'Pkg.clone(pwd()); Pkg.build("MeCab");'
   - julia -e 'Pkg.test("MeCab", coverage=true)'
 after_success:
   - julia -e 'cd(Pkg.dir("MeCab")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(process_folder())'
