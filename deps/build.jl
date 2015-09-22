@@ -6,7 +6,7 @@ mecab = library_dependency("libmecab")
 
 const version = "0.996"
 
-provides(Sources, 
+provides(Sources,
          URI("https://mecab.googlecode.com/files/mecab-$(version).tar.gz"),
          mecab,
          unpacked_dir="mecab-$(version)")
@@ -25,7 +25,7 @@ provides(SimpleBuild,
               end
            end), mecab, os = :Unix)
 
-@BinDeps.install [:libmecab => :libmecab]
+@BinDeps.install @compat Dict(:libmecab => :libmecab)
 
 # mecab-ipadic install
 
@@ -55,6 +55,6 @@ function install_ipadic()
 end
 
 ipadic_dir = joinpath(BinDeps.depsdir(mecab), "usr", "lib", "mecab", "dic", "ipadic")
-if isempty(find_library(["libmecab"])) && !isdir(ipadic_dir)
+if isempty(Libdl.find_library(["libmecab"])) && !isdir(ipadic_dir)
     @unix_only install_ipadic()
 end
