@@ -8,9 +8,10 @@ mecab = library_dependency("libmecab")
 const version = "0.996"
 
 provides(Sources,
-         URI("https://mecab.googlecode.com/files/mecab-$(version).tar.gz"),
+         URI("https://drive.google.com/uc?export=download&id=0B4y35FiV1wh7cENtOXlicTFaRUE"),
          mecab,
-         unpacked_dir="mecab-$(version)")
+         unpacked_dir="mecab-$(version)",
+         filename="mecab-$(version).tar.gz")
 
 prefix = joinpath(BinDeps.depsdir(mecab), "usr")
 srcdir = joinpath(BinDeps.depsdir(mecab), "src", "mecab-$(version)")
