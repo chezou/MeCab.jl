@@ -1,5 +1,11 @@
 using BinDeps
 
+if VERSION < v"0.4-"
+  Libdl = Base
+else
+  Libdl = Base.Libdl
+end
+
 @BinDeps.setup
 
 mecab = library_dependency("libmecab")
