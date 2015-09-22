@@ -1,5 +1,6 @@
 using MeCab
 using Base.Test
+using Compat
 
 # assume using ipadic
 mecab = Mecab()
@@ -16,7 +17,7 @@ results = parse(mecab, "")
 
 results = parse_surface(mecab, "今日の天気は晴れです")
 @test length(results) == 6
-@test isa(results[1], String)
+@test isa(results[1], AbstractString)
 @test results[1] == "今日"
 @test results[6] == "です"
 
