@@ -52,7 +52,22 @@ end
 - mecab
 - dictionary for mecab (such as mecab-ipadic, mecab-naist-jdic, and so on)
 
-If you don't install mecab and libmecab yet, MeCab.jl will install mecab, libmecab and mecab-ipadic under unix-like environment.
+If you don't install mecab and libmecab yet, MeCab.jl will install mecab, libmecab and mecab-ipadic that are confirmed to work with MeCab.jl under unix-like environment.
+
+Note that by default, MeCab.jl will try to find system-installed libmecab (e.g. /usr/lib/libmecab.dylib). If you have already libmecab installed, this might cause library or dictionary incompatibility that MeCab.jl assumes. If you have any problem with system-installed ones, please try to ignore them and rebuild MeCab.jl by:
+
+```jl
+julia> ENV["MECABJL_LIBRARY_IGNORE_PATH"] = "/usr/lib:/usr/local/lib" # depends on your environment
+julia> Pkg.build("MeCab")
+```
+
+The libmecab library path will be stored in `MeCab.libmecab` after loading MeCab.jl. The library path should look like for example:
+
+```jl
+julia> using MeCab
+julia> MeCab.libmecab
+"$your_home_dir_path/.julia/v0.4/MeCab/deps/usr/lib/libmecab.dylib"
+```
 
 ## Credits
 MeCab.jl is created by Michiaki Ariga
