@@ -3,7 +3,18 @@ using Compat
 
 @BinDeps.setup
 
-mecab = library_dependency("libmecab")
+# e.g. ENV["MECABJL_LIBRARY_IGNORE_PATH"] = "/usr/lib:/usr/local/lib"
+ignore_paths = split(strip(get(ENV, "MECABJL_LIBRARY_IGNORE_PATH", "")), ':')
+
+validate = function(libpath, handle)
+    for path in ignore_paths
+        isempty(path) && continue
+        ismatch(Regex("^$(path)"), libpath) && return false
+    end
+    return true
+end
+
+mecab = library_dependency("libmecab", validate=validate)
 
 const version = "0.996"
 
@@ -56,7 +67,8 @@ function install_ipadic()
     run(`make install`)
 end
 
-ipadic_dir = joinpath(BinDeps.depsdir(mecab), "usr", "lib", "mecab", "dic", "ipadic")
-if isempty(Libdl.find_library(["libmecab"])) && !isdir(ipadic_dir)
+mecablib_dir = joinpath(BinDeps.depsdir(mecab), "usr", "lib")
+ipadic_expected_dir = joinpath(mecablib_dir, "mecab", "dic", "ipadic")
+if isdir(mecablib_dir) && !isdir(ipadic_expected_dir)
     @unix_only install_ipadic()
 end
