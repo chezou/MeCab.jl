@@ -18,13 +18,13 @@ export Mecab, MecabNode, sparse_tostr, nbest_sparse_tostr, mecab_sparse_tonode,
 type Mecab
   ptr::Ptr{Void}
 
-  function Mecab(option::ASCIIString = "")
+  function Mecab(option::String = "")
     argv = vcat("mecab", split(option))
 
     ptr = ccall(
       (:mecab_new, libmecab),
       Ptr{Void},
-      (Cint, Ptr{Ptr{UInt8}}),
+      (Cint, Ptr{Ptr{@compat UInt8}}),
       length(argv), argv
     )
 
@@ -46,8 +46,8 @@ type MecabRawNode
   bnext::Ptr{MecabRawNode}
   rpath::Ptr{Void}
   lpath::Ptr{Void}
-  surface::Ptr{UInt8}
-  feature::Ptr{UInt8}
+  surface::Ptr{@compat UInt8}
+  feature::Ptr{@compat UInt8}
   id::Cint
   length::Cushort
   rlength::Cushort
@@ -65,20 +65,20 @@ type MecabRawNode
 end
 
 type MecabNode
-  surface::UTF8String
-  feature::UTF8String
+  surface::String
+  feature::String
 end
 
 function create_node(raw::MecabRawNode)
   MecabNode(
     create_surface(raw),
-    bytestring(raw.feature),
+    unsafe_string(raw.feature),
   )
 end
 
 function create_surface(raw::MecabRawNode)
-  _surface = bytestring(raw.surface)
-  surface::UTF8String
+  _surface = unsafe_string(raw.surface)
+  local surface::String
   surface = try
       _surface[1:raw.length]
     catch
@@ -99,7 +99,7 @@ function create_nodes(raw::Ptr{MecabRawNode})
 end
 
 function create_surfaces(raw::Ptr{MecabRawNode})
-  ret = Array(UTF8String, 0)
+  ret = Array(String, 0)
   while raw != C_NULL
     _raw = unsafe_load(raw)
     if _raw.length != 0
@@ -112,60 +112,53 @@ end
 
 function sparse_tostr(mecab::Mecab, input::AbstractString)
   result = ccall(
-      (:mecab_sparse_tostr, libmecab), Ptr{UInt8},
-      (Ptr{UInt8}, Ptr{UInt8},),
-      mecab.ptr, bytestring(input)
+      (:mecab_sparse_tostr, libmecab), Ptr{@compat UInt8},
+      (Ptr{@compat UInt8}, Ptr{@compat UInt8},),
+      mecab.ptr, string(input)
     )
-  ret::UTF8String
-  ret = chomp(bytestring(result))
+  local ret::String
+  ret = chomp(unsafe_string(result))
   ret
 end
 
 function nbest_sparse_tostr(mecab::Mecab, n::Int64, input::AbstractString)
   result = ccall(
-      (:mecab_nbest_sparse_tostr, libmecab), Ptr{UInt8},
-      (Ptr{UInt8}, Int32, Ptr{UInt8},),
-      mecab.ptr, n, bytestring(input)
+      (:mecab_nbest_sparse_tostr, libmecab), Ptr{@compat UInt8},
+      (Ptr{@compat UInt8}, Int32, Ptr{@compat UInt8},),
+      mecab.ptr, n, string(input)
     )
-  ret::UTF8String
-  ret = chomp(bytestring(result))
+  local ret::String
+  ret = chomp(unsafe_string(result))
   ret
 end
 
 function mecab_sparse_tonode(mecab::Mecab, input::AbstractString)
   node = ccall(
       (:mecab_sparse_tonode, libmecab), Ptr{MecabRawNode},
-      (Ptr{UInt8}, Ptr{UInt8},),
-      mecab.ptr, bytestring(input)
+      (Ptr{@compat UInt8}, Ptr{@compat UInt8},),
+      mecab.ptr, string(input)
     )
   node
 end
 
 function nbest_init(mecab::Mecab, input::AbstractString)
-  ccall((:mecab_nbest_init, libmecab), Void, (Ptr{Void}, Ptr{UInt8}), mecab.ptr, bytestring(input))
+  ccall((:mecab_nbest_init, libmecab), Void, (Ptr{Void}, Ptr{@compat UInt8}), mecab.ptr, string(input))
 end
 
 function nbest_next_tostr(mecab::Mecab)
-  result = ccall((:mecab_nbest_next_tostr,libmecab), Ptr{UInt8}, (Ptr{Void},), mecab.ptr)
-  ret::UTF8String
-  ret = chomp(bytestring(result))
+  result = ccall((:mecab_nbest_next_tostr,libmecab), Ptr{@compat UInt8}, (Ptr{Void},), mecab.ptr)
+  local ret::String
+  ret = chomp(unsafe_string(result))
   ret
 end
 
-function parse(mecab::Mecab, input::UTF8String)
+function parse(mecab::Mecab, input::String)
   node = mecab_sparse_tonode(mecab, input)
-  ret::Array{MecabNode}
+  local ret::Array{MecabNode}
   ret = create_nodes(node)
 end
 
-function parse(mecab::Mecab, input::ASCIIString)
-  if isempty(input)
-    return []
-  end
-  parse(mecab, utf8(input))
-end
-
-function parse_surface(mecab::Mecab, input::UTF8String)
+function parse_surface(mecab::Mecab, input::String)
   results = [ split(line, "\t")[1] for line = split(sparse_tostr(mecab, input), "\n") ]
   # If you don't need EOS, you can remove following
   if isempty(results)
@@ -175,31 +168,23 @@ function parse_surface(mecab::Mecab, input::UTF8String)
   results
 end
 
-function parse_surface(mecab::Mecab, input::ASCIIString)
-  parse_surface(mecab, utf8(input))
-end
-
-function parse_surface2(mecab::Mecab, input::UTF8String)
+function parse_surface2(mecab::Mecab, input::String)
   node = mecab_sparse_tonode(mecab, input)
-  ret::Array{UTF8String}
+  local ret::Array{String}
   ret = create_surfaces(node)
 end
 
-function parse_nbest(mecab::Mecab, n::Int64, input::UTF8String)
+function parse_nbest(mecab::Mecab, n::Int64, input::String)
   results = split(nbest_sparse_tostr(mecab, n, input), "EOS\n")
 
-  filter(x -> !isempty(x), [create_mecab_results(convert(Array{UTF8String}, split(result,"\n"))) for result in results])
+  filter(x -> !isempty(x), [create_mecab_results(convert(Array{String}, split(result,"\n"))) for result in results])
 end
 
-function parse_nbest(mecab::Mecab, n::Int64, input::ASCIIString)
-  parse_nbest(mecab, n, utf8(input))
-end
-
-function create_mecab_results(results::Array{UTF8String, 1})
+function create_mecab_results(results::Array{String, 1})
   filter(x -> x != nothing, map(mecab_result, results))
 end
 
-function mecab_result(input::UTF8String)
+function mecab_result(input::String)
   if isempty(input) || input == "EOS"
     return
   end

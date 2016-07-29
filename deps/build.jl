@@ -70,5 +70,7 @@ end
 mecablib_dir = joinpath(BinDeps.depsdir(mecab), "usr", "lib")
 ipadic_expected_dir = joinpath(mecablib_dir, "mecab", "dic", "ipadic")
 if isdir(mecablib_dir) && !isdir(ipadic_expected_dir)
-    @unix_only install_ipadic()
+    @static if is_unix()
+      install_ipadic()
+    end
 end

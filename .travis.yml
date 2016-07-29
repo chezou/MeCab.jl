@@ -1,16 +1,10 @@
 language: julia
 os:
   - linux
+#  - osx
 julia:
-  - 0.3
-  - 0.4
+  - release
   - nightly
+  - 0.3
 notifications:
   email: false
-sudo: false
-script:
-  - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
-  - julia -e 'Pkg.clone(pwd()); Pkg.build("MeCab");'
-  - julia -e 'Pkg.test("MeCab", coverage=true)'
-after_success:
-  - julia -e 'cd(Pkg.dir("MeCab")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(process_folder())'
