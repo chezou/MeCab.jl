@@ -2,7 +2,7 @@ module MeCab
 using Compat
 
 # Load dependencies
-deps = joinpath(Pkg.dir("MeCab"), "deps", "deps.jl")
+deps = joinpath(dirname(@__FILE__), "..", "deps", "deps.jl")
 if isfile(deps)
     include(deps)
 else
