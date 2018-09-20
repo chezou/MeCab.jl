@@ -5,9 +5,7 @@
 [![MeCab](http://pkg.julialang.org/badges/MeCab_0.7.svg)](http://pkg.julialang.org/?pkg=MeCab&ver=0.7)
 [![MeCab](http://pkg.julialang.org/badges/MeCab_1.0.svg)](http://pkg.julialang.org/?pkg=MeCab&ver=1.0)
 
-
 Julia bindings for Japanese morphological analyzer [MeCab](http://mecab.googlecode.com/svn/trunk/mecab/doc/index.html)
-
 
 ## Usage
 
@@ -74,4 +72,9 @@ julia> MeCab.libmecab
 ## Credits
 MeCab.jl is created by Michiaki Ariga
 
-[MeCab](http://mecab.googlecode.com/svn/trunk/mecab/doc/index.html) by Taku Kudo
+Original [MeCab](http://mecab.googlecode.com/svn/trunk/mecab/doc/index.html) is created by Taku Kudo
+
+### Contributors
+- @r9y9
+- @snthot
+- @tkelman
