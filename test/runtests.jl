@@ -1,5 +1,5 @@
 using MeCab
-using Base.Test
+using Test
 using Compat
 
 # assume using ipadic

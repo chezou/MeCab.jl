@@ -1,5 +1,6 @@
 module MeCab
-using Compat
+
+using Libdl
 
 # Load dependencies
 deps = joinpath(dirname(@__FILE__), "..", "deps", "deps.jl")
@@ -9,22 +10,21 @@ else
     error("MeCab not properly installed. Please run Pkg.build(\"MeCab\")")
 end
 
-@assert isdefined(:libmecab)
+@assert @isdefined libmecab
 
 import Base: parse
 export Mecab, MecabNode, sparse_tostr, nbest_sparse_tostr, mecab_sparse_tonode,
        nbest_init, nbest_next_tostr, parse_tonode, parse_surface, parse_surface2, parse_nbest
 
-type Mecab
-  ptr::Ptr{Void}
+mutable struct Mecab
+  ptr::Ptr{Nothing}
 
   function Mecab(option::String = "")
     argv = vcat("mecab", split(option))
-
     ptr = ccall(
       (:mecab_new, libmecab),
-      Ptr{Void},
-      (Cint, Ptr{Ptr{@compat UInt8}}),
+      Ptr{Nothing},
+      (Cint, Ptr{Ptr{UInt8}}),
       length(argv), argv
     )
 
@@ -32,22 +32,22 @@ type Mecab
       error("failed to create tagger")
     end
     smart_p = new(ptr)
-
-    finalizer(smart_p, obj -> ccall((:mecab_destroy, libmecab),  Void, (Ptr{Void},), obj.ptr))
+    
+    finalizer(obj -> ccall((:mecab_destroy, libmecab),  Nothing, (Ptr{Nothing},), obj.ptr), smart_p)
 
     smart_p
   end
 end
 
-type MecabRawNode
+mutable struct MecabRawNode
   prev::Ptr{MecabRawNode}
   next::Ptr{MecabRawNode}
   enext::Ptr{MecabRawNode}
   bnext::Ptr{MecabRawNode}
-  rpath::Ptr{Void}
-  lpath::Ptr{Void}
-  surface::Ptr{@compat UInt8}
-  feature::Ptr{@compat UInt8}
+  rpath::Ptr{Nothing}
+  lpath::Ptr{Nothing}
+  surface::Ptr{UInt8}
+  feature::Ptr{UInt8}
   id::Cint
   length::Cushort
   rlength::Cushort
@@ -64,7 +64,7 @@ type MecabRawNode
   cost::Clong
 end
 
-type MecabNode
+mutable struct MecabNode
   surface::String
   feature::String
 end
@@ -77,17 +77,20 @@ function create_node(raw::MecabRawNode)
 end
 
 function create_surface(raw::MecabRawNode)
-  _surface = unsafe_string(raw.surface)
+  start_idx = convert(Int64,raw.surface)
+  _nextraw = unsafe_load(raw.next)
+  next_idx = convert(Int64,_nextraw.surface)
+
   local surface::String
   surface = try
-      _surface[1:raw.length]
+      unsafe_string(raw.surface,next_idx - start_idx)
     catch
-      _surface
+      unsafe_string(raw.surface)
     end
 end
 
 function create_nodes(raw::Ptr{MecabRawNode})
-  ret = Array(MecabNode, 0)
+  ret = Array{MecabNode}(undef, 0)
   while raw != C_NULL
     _raw = unsafe_load(raw)
     if _raw.length != 0
@@ -112,8 +115,8 @@ end
 
 function sparse_tostr(mecab::Mecab, input::AbstractString)
   result = ccall(
-      (:mecab_sparse_tostr, libmecab), Ptr{@compat UInt8},
-      (Ptr{@compat UInt8}, Ptr{@compat UInt8},),
+      (:mecab_sparse_tostr, libmecab), Ptr{UInt8},
+      (Ptr{UInt8}, Ptr{UInt8},),
       mecab.ptr, string(input)
     )
   local ret::String
@@ -123,8 +126,8 @@ end
 
 function nbest_sparse_tostr(mecab::Mecab, n::Int64, input::AbstractString)
   result = ccall(
-      (:mecab_nbest_sparse_tostr, libmecab), Ptr{@compat UInt8},
-      (Ptr{@compat UInt8}, Int32, Ptr{@compat UInt8},),
+      (:mecab_nbest_sparse_tostr, libmecab), Ptr{UInt8},
+      (Ptr{UInt8}, Int32, Ptr{UInt8},),
       mecab.ptr, n, string(input)
     )
   local ret::String
@@ -135,18 +138,18 @@ end
 function mecab_sparse_tonode(mecab::Mecab, input::AbstractString)
   node = ccall(
       (:mecab_sparse_tonode, libmecab), Ptr{MecabRawNode},
-      (Ptr{@compat UInt8}, Ptr{@compat UInt8},),
+      (Ptr{UInt8}, Ptr{UInt8},),
       mecab.ptr, string(input)
     )
   node
 end
 
 function nbest_init(mecab::Mecab, input::AbstractString)
-  ccall((:mecab_nbest_init, libmecab), Void, (Ptr{Void}, Ptr{@compat UInt8}), mecab.ptr, string(input))
+  ccall((:mecab_nbest_init, libmecab), Nothing, (Ptr{Nothing}, Ptr{UInt8}), mecab.ptr, string(input))
 end
 
 function nbest_next_tostr(mecab::Mecab)
-  result = ccall((:mecab_nbest_next_tostr,libmecab), Ptr{@compat UInt8}, (Ptr{Void},), mecab.ptr)
+  result = ccall((:mecab_nbest_next_tostr,libmecab), Ptr{UInt8}, (Ptr{Nothing},), mecab.ptr)
   local ret::String
   ret = chomp(unsafe_string(result))
   ret
